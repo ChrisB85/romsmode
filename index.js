@@ -4,6 +4,7 @@ const config = require("config");
 const playwright = require("playwright-chromium");
 const dir = config.get('downloadDir');
 const downloadFile = config.get('downloadFile');
+const failedFile = config.get('failedFile');
 const url = config.get('url');
 const browserType = "chromium";
 
@@ -88,18 +89,34 @@ async function processlinks() {
     console.log(`Processing link [${currentGame + 1}/${allLinks.length}] ${allLinks[currentGame]}`);
     await page.goto(allLinks[currentGame]);
     const [download] = await Promise.all([
-        page.waitForEvent('download'), // wait for download to start
+        page.waitForEvent('download').then(() => { }, () => {
+            console.log(`Download failed :( Skipping link...`);
+            var failedLinks;
+            try {
+                var failedData = fs.readFileSync(failedFile, "utf-8");
+                failedLinks = JSON.parse(failedData);
+            } catch (error) {
+                failedLinks = [];
+            }
+            failedLinks.push(allLinks[currentGame]);
+            fs.writeFileSync(
+                failedFile,
+                JSON.stringify(failedLinks)
+            );
+        }), // wait for download to start
         page.click('.wait__link')
     ]);
     // wait for download to complete
-    var path = await download.path();
-    var url = decodeURI(await download.url());
-    var fileName = url.split('/').slice(-1).pop();
-    console.log(`ROM saved as ${fileName}`);
-    fs.copyFile(path, dir + fileName, async (err) => {
-        if (err) { throw err };
-        await download.delete();
-    });
+    if (download != undefined) {
+        var path = await download.path();
+        var url = decodeURI(await download.url());
+        var fileName = url.split('/').slice(-1).pop();
+        console.log(`ROM saved as ${fileName}`);
+        fs.copyFile(path, dir + fileName, async (err) => {
+            if (err) { throw err };
+            await download.delete();
+        });
+    }
 
     allLinks[currentGame] = null;
 

@@ -1,5 +1,6 @@
 {
     "url": "https://romsmode.com/roms/nintendo",
     "downloadDir": "./downloads/",
-    "downloadFile": "./download.json"
+    "downloadFile": "./download.json",
+    "failedFile": "./failed.json"
 }
