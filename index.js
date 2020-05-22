@@ -55,9 +55,11 @@ var currentGame = 0;
 
 async function processPage() {
     console.log(`Processing page ${currentPage}/${pagesCount}...`);
-    await page.goto(`${url}/${currentPage}`);
 
-    var links = await page.$$('.link');
+    var selector = `a[data-page="${currentPage}"]`;
+    await page.dispatchEvent(selector, 'click');
+
+    var links = await page.$$('.table a');
     links.forEach(async (link) => {
         let gameUrl = await link.getAttribute('href');
         pageLinks.push(gameUrl);
@@ -139,7 +141,7 @@ async function processlinks() {
 }
 
 async function getPages(page) {
-    var lis = await page.$$('.pagination__link');
+    var lis = await page.$$('.pagination__el a');
     var lastPage = await page.$(`.pagination__list li:nth-child(${lis.length})`);
     return await lastPage.innerText();
 }
