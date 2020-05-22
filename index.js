@@ -89,16 +89,7 @@ async function processlinks() {
     console.log(`Processing link [${currentGame + 1}/${allLinks.length}] ${allLinks[currentGame]}`);
     await page.goto(allLinks[currentGame]);
     const [download] = await Promise.all([
-        page.waitForEvent('download').then(async (download) => {
-            var path = await download.path();
-            var url = decodeURI(await download.url());
-            var fileName = url.split('/').slice(-1).pop();
-            console.log(`ROM saved as ${fileName}`);
-            fs.copyFile(path, dir + fileName, async (err) => {
-                if (err) { throw err };
-                await download.delete();
-            });
-        }, () => {
+        page.waitForEvent('download').then(null, () => {
             console.log(`Download failed :( Skipping link...`);
             var failedLinks;
             try {
@@ -115,6 +106,17 @@ async function processlinks() {
         }), // wait for download to start
         page.click('.wait__link')
     ]);
+    // wait for download to complete
+    if (download != undefined) {
+        var path = await download.path();
+        var url = decodeURI(await download.url());
+        var fileName = url.split('/').slice(-1).pop();
+        console.log(`ROM saved as ${fileName}`);
+        fs.copyFile(path, dir + fileName, async (err) => {
+            if (err) { throw err };
+            await download.delete();
+        });
+    }
 
     allLinks[currentGame] = null;
 
