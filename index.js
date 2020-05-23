@@ -113,11 +113,16 @@ async function processlinks() {
         var path = await download.path();
         var url = decodeURI(await download.url());
         var fileName = url.split('/').slice(-1).pop();
-        console.log(`ROM saved as ${fileName}`);
-        fs.copyFile(path, dir + fileName, async (err) => {
-            if (err) { throw err };
+        if (!fs.existsSync(dir + fileName)) {
+            fs.copyFile(path, dir + fileName, async (err) => {
+                if (err) { throw err };
+                await download.delete();
+            });
+            console.log(`ROM saved as ${fileName}`);
+        } else {
+            console.log(`ROM ${fileName} already exist`);
             await download.delete();
-        });
+        }
     }
 
     allLinks[currentGame] = null;
