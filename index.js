@@ -114,7 +114,7 @@ async function processlinks() {
         var url = decodeURI(await download.url());
         var fileName = url.split('/').slice(-1).pop();
         if (!fs.existsSync(dir + fileName)) {
-            fs.copyFile(path, dir + fileName, async (err) => {
+            fs.copyFileSync(path, dir + fileName, async (err) => {
                 if (err) { throw err };
                 await download.delete();
             });
